@@ -35,7 +35,7 @@ public class World extends Command {
                 msgPlayer(player,
                         "&9---- &2World Manager &9----",
                         "",
-                        "&8/world &7create &d<World Name>",
+                        "&8/world &7create &d<World Name> <World Environment>",
                         "&8/world &7tp &d<World Name> [x,y,z]",
                         "&8/world &7remove &d<World Name>",
                         "&8/world &7list",
@@ -44,7 +44,22 @@ public class World extends Command {
                 return;
             case "create":
                 WorldCreator worldCreator = new WorldCreator(args[1]);
-                worldCreator.environment(org.bukkit.World.Environment.NORMAL);
+
+                if (args[2] != null) {
+                    String[] environments = new String[] {"NETHER", "NORMAL", "THE_END"};
+                    for (String environment : environments ) {
+                        if (environment.equalsIgnoreCase(args[2])) {
+                            org.bukkit.World.Environment enviroment = org.bukkit.World.Environment.valueOf(args[2]);
+                            worldCreator.environment(enviroment);
+                        } else {
+                            msgPlayer(player, "&cThis environment doesn't exist.",
+                                    "&aCorrect environments are &fNORMAL&a, &cNETHER&a, &dTHE_END&r");
+                        }
+                    }
+                } else {
+                    msgPlayer(player, "&cYou forgot the environment!");
+                    return;
+                }
                 worldCreator.type(WorldType.NORMAL);
 
                 worldCreator.createWorld();
@@ -98,7 +113,7 @@ public class World extends Command {
                 msgPlayer(player, format("&aThe world %s has been successfully &cdeleted.", args[1]));
                 return;
             case "list":
-                List<org.bukkit.World> worldList = Bukkit.getWorlds();
+                List<org.bukkit.World> worldList = getWorlds();
                 StringBuilder newString = new StringBuilder();
                 for (org.bukkit.World worldInList : worldList) {
                     newString.append(worldInList.getName()).append(", ");

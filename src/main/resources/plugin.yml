@@ -1,0 +1,9 @@
+name: WorldManager
+version: '${project.version}'
+main: dev.blousy.worldmanager.WorldManager
+api-version: '1.20'
+
+commands:
+  world:
+    Description: Create, remove and manage different worlds!
+    usage: /<command>

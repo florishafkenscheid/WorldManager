@@ -10,14 +10,19 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static dev.blousy.worldmanager.methods.Utils.msgPlayer;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
+import static org.bukkit.Bukkit.getWorld;
 import static org.bukkit.Bukkit.getWorlds;
 
 public class World extends Command {
+
+    public List<org.bukkit.World> worldIsClosedList = new ArrayList<>();
+
     public World(WorldManager main) {
         super(main, "world");
     }
@@ -66,10 +71,14 @@ public class World extends Command {
                 msgPlayer(player, format("&aA new world called &5%s &ahas been created.", args[1]));
                 return;
             case "tp":
-                world = Bukkit.getWorld(valueOf(args[1]));
+                world = getWorld(valueOf(args[1]));
                 if (world == null || !doesWorldExist(world)) {
                     msgPlayer(player, "&cThe world you have chosen does not exist.");
                     return;
+                }
+
+                if (isClosed(world)) {
+                    msgPlayer(player, "&cThis world is closed.");
                 }
 
                 if (args.length < 3) {
@@ -88,11 +97,11 @@ public class World extends Command {
                     Location destination = new Location(world, coordinates[0], coordinates[1], coordinates[2]);
 
                     player.teleport(destination);
-                    msgPlayer(player, "&aSuccessfully teleported to %s at %s", args[1], args[2]);
+                    msgPlayer(player, format("&aSuccessfully teleported to %s at %s", args[1], args[2]));
                 }
                 return;
             case "remove":
-                world = Bukkit.getWorld(valueOf(args[1]));
+                world = getWorld(valueOf(args[1]));
                 if (world == null || !doesWorldExist(world)) {
                     msgPlayer(player, "&cThe world you have chosen does not exist.");
                     return;
@@ -125,6 +134,22 @@ public class World extends Command {
 
                 msgPlayer(player, newString.toString());
                 return;
+
+            case "close":
+                world = getWorld(args[1]);
+                unloadWorld(world);
+                worldIsClosedList.add(world);
+                return;
+
+            case "open":
+                world = getWorld(args[1]);
+                if (world == null) {
+                    world = Bukkit.createWorld(new WorldCreator(args[1]));
+                    Bukkit.getWorlds().add(world);
+                    worldIsClosedList.remove(world);
+                }
+                return;
+
             default:
                 msgPlayer(player, "&cUnknown command argument &f" + args[0] + "&c!");
                 break;
@@ -133,5 +158,19 @@ public class World extends Command {
 
     public boolean doesWorldExist(org.bukkit.World world) {
         return getWorlds().contains(world);
+    }
+
+    public boolean isClosed(org.bukkit.World world) {
+        return worldIsClosedList.contains(world);
+    }
+
+    public void unloadWorld(org.bukkit.World world) {
+        if (world != null) {
+            Bukkit.getServer().unloadWorld(world, true);
+        }
+    }
+
+    public List<org.bukkit.World> getWorldIsClosedList() {
+        return worldIsClosedList;
     }
 }
